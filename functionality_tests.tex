@@ -1,0 +1,149 @@
+\documentclass{dune}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{xspace}
+
+\usepackage{biblatex}
+\addbibresource{references.bib}
+
+\input{glossary.tex}
+
+\title{DUNE Timing Functionality Tests}
+\author{D. Cussans, D. Lindebaum, D. Newbold, S. Paramesvaran, S. Trilov}
+\date{October 2022}
+
+\begin{document}
+\linenumbers
+\maketitle
+
+\tableofcontents
+
+
+\section{Introduction}
+This document lists and describes tests on the DUNE timing system, which is responsible for distributing timestamps throughout the DUNE experiment, including to the \dword{vd} \dword{tde}, which uses a different timestamp distribution system, \dword{wr}.
+The test stands currently being used for the majority of the testing are built with prototype hardware.
+
+The success of ProtoDUNE-I indicates the majority of the timing system works together as required.
+We highlight specific tests outside the general running of ProtoDUNE-I below.
+
+\section{Functionality Tests}
+
+\subsection{Modified timing protocol}
+The difficulty in sourcing \dword{cdr} (Clock and Data Recovery) chips (ADN2814 chip) required the development of a new protocol which is not dependent upon this chip.
+The new protocol is designed to have the same functionality as the previous protocol.
+\begin{itemize}
+  \item Basic functionality tests have passed by demonstrating the same results with basic commands as the previous protocol. Basic tests include:
+  \begin{itemize}
+  	\item Clocks are produced and received.
+  	\item Endpoints reach required states.
+  	\item \dword{hsi} information is correctly stored.
+  \end{itemize}
+  \item Tests listed below can be assumed to have passed the modified protocol, unless specified.
+\end{itemize}
+
+\subsection{Clock jitter}
+\label{sec:jitter}
+The clock must be stable such that it will not drift over time and produce incorrect timestamps.
+\begin{itemize}
+  \item Difference in time of clock edges between a master and locked endpoint were measured and found to have a standard deviation of 12ps \cite{jitter}.
+\end{itemize}
+
+\subsection{Integration with VD TDE}
+The \dword{vd} \dword{tde} use a \dword{wr} timing system.
+The \dword{wr} clock and timestamp must be locked to the \dword{dts} clock and timestamp.
+The following properties were tested:
+\begin{itemize}
+  \item The \dword{dts} and \dword{wr} clocks remain locked.
+  \begin{itemize}
+    \item The difference in rising edges between \dword{dts} and \dword{wr} clocks was measured to be 509ps with a standard deviation of 41ps \cite{wr}.
+  \end{itemize}
+  \item The \dword{wr} timestamp generation is stable when driven by one pulse per second from \dword{dts}.
+  \begin{itemize}
+    \item The period of a 1PPS as sampled by a \dword{wr} \dword{tdc} had a standard deviation of 0.1ns \cite{wr}.
+  \end{itemize}
+  \item The \dword{wr} timestamp remains locked to the \dword{dts} timestamp.
+  \begin{itemize}
+    \item The difference in \dword{wr} timestamps and \dword{dts} timestamps is uniform between 0ns and 16ns. This comes from \dword{dts} being quantised in 16ns intervals and \dword{wr} having a finer granularity \cite{wr}.
+    \item Tests with the new protocol have not yet been performed.
+  \end{itemize}
+\end{itemize}
+
+\subsection{Endpoint delays}
+To compensate for varying fibre lengths and environmental conditions, each DTS endpoint can be programmed with an individual delay.
+\begin{itemize}
+  \item Two endpoints are connected to the same master device with different length fibres.
+  The endpoints output an electrical pulse on the receipt of a particular fixed-length timing command.
+  The time difference between the two pulses represents the delay introduced by the longer optical fibre.
+  The two pulses are aligned by applying an appropriate delay to the endpoint with the shorter fibre \cite{delays}.
+  \item This test has not yet been performed for the new protocol, but round trip measurements imply proper application.
+\end{itemize}
+
+\subsection{Error detection in link acquisition and lock}
+An error in the clock signal must be detected and flagged.
+In the new protocol, anything which does not give perfect reception of data will cause the state of the endpoint to move into error.
+\begin{itemize}
+  \item Signal loss detection is found to work reliably when tested.
+\end{itemize}
+%Two flags are used to indicate a \dword{lol} (Loss Of Lock) and \dword{los} (Loss Of Signal).
+%An additional \dword{of} (Other Frequency) flag checks the clock frequency is the expected value.
+%These flags come from the \dword{pll} and also \dword{sfp} for the \dword{los}, and are interpreted by the \dword{dts} firmware.
+%These signals go high when a fault is recognised to monitor the status of the system.
+%\begin{itemize}
+%  \item \dword{los} is high when there is no signal given to the device.
+%  \item \dword{lol} is high when bad data is given to the device.
+%  \item \dword{of} is high when the device is given a good clock with a different frequency than expected by the device.
+%\end{itemize}
+
+\subsection{Clock distribution}
+Endpoint must be able to reconstruct a clock from the data they receive.
+\begin{itemize}
+  \item \dword{cdr} block inside timing firmware able to recover the clock from data.
+  The results of \ref{sec:jitter} demonstrates the clocks lock.
+\end{itemize}
+
+\subsection{Controlling endpoint transmission}
+The transmission of data through the \dword{sfp} connected to the endpoint can be toggled on and off via a software command.
+\begin{itemize}
+  \item Power is received in the \dword{sfp} of the connected master when the endpoint transmission is toggled on, and no power is received when the endpoint transmission is toggled off.
+  \item This is yet to be tested with all available hardware designs.
+\end{itemize}
+
+\subsection{Synchronisation across endpoints}
+All devices in the \dword{dts} should have the same timestamps.
+\begin{itemize}
+  \item ProtoDUNE-I included tracks which caused multiple \dword{hsi} events.
+    No unexpected behaviour was observed.
+  \item Quantitative tests are expected to be carried out with the new protocol in ProtoDUNE-II.
+\end{itemize}
+
+\subsection{Bi-directional communication}
+To be able to measure round trip times, and more, it is necessary to have a two-way connection between master and endpoint.
+\begin{itemize}
+  \item The ability to make delay measurements shows this is true, since it requires sending a package from the master and waiting for a reply package from the endpoint.
+  \item Additionally, endpoint registers can been read from the master using an appropriate command.
+\end{itemize}
+
+\subsection{Broadcasting commands}
+The timing system must be able to send sync commands from a master device to an endpoint.
+\begin{itemize}
+  \item The software interface to inject a commands at arbitrary times has been tested, and shown to work.
+\end{itemize}
+
+\subsection{Data packet transfer}
+Endpoints must be able to receive data packets, e.g. for changing the value in one of the registers.
+\begin{itemize}
+  \item Registers on endpoints can be changed by a command from the master.
+\end{itemize}
+
+\subsection{Redundancy}
+The \dword{dts} will have two GPS receivers and crates containing master devices.
+The timestamps between these systems will be compared and any disparity will be flagged and reported to the \dword{ccm} (Control, Configuration and Management).
+\begin{itemize}
+  \item The GPS systems have not yet been fully developed.
+\end{itemize}
+
+\printglossary
+\printbibliography
+
+\end{document}
