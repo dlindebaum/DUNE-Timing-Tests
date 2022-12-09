@@ -1,6 +1,7 @@
 \documentclass{dune}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
+\graphicspath{ {./figures/} }
 \usepackage{float}
 \usepackage{xspace}
 
@@ -21,15 +22,67 @@
 
 
 \section{Introduction}
-This document lists and describes tests on the DUNE timing system, which is responsible for distributing timestamps throughout the DUNE experiment, including to the \dword{vd} \dword{tde}, which uses a different timestamp distribution system, \dword{wr}.
+This document lists and describes tests on the \dword{dts}, which is responsible for distributing timestamps throughout the DUNE experiment, including to the \dword{vd} \dword{tde}, which uses a different timestamp distribution system, \dword{wr}.
 The test stands currently being used for the majority of the testing are built with prototype hardware.
 
-The success of ProtoDUNE-I indicates the majority of the timing system works together as required.
-We highlight specific tests outside the general running of ProtoDUNE-I below.
+The tests carried out during ProtoDUNE-I are listed first, followed by additional tests which have been performed after ProtoDUNE-I, covering additional aspects of the timing system which deserve testing.
 
-\section{Functionality Tests}
+\section{ProtoDUNE-I testing}
+\subsection{Integration tests}
+As part of the \dword{dts} prototyping process, a Schroff 11890-170 \dword{utca} crate, and an \dword{afc} board [2] were purchased.
+The AFC is being considered to be the \dword{amc} which hosts the \dword{fib}.
+The two units were operated together, and the existing timing \dword{fmc} was used to start assessing \dword{afc}’s suitability as a fan-out \dword{amc}.
+
+\subsubsection{\dword{utca} crate-\dword{afc}}
+The following operations were successfully tested with the \dword{utca} crate and the \dword{afc}.
+\begin{itemize}
+    \item Remote programming of \dword{afc} \dword{fpga}.
+    \item Configuration of \dword{afc} clock routing circuity using Intelligent Platform Management Interface (IPMI) commands.
+    \item Configuration of \dword{afc} on-board oscillator using IPMI commands.
+\end{itemize}
+
+\subsubsection{AFC-Timing \dword{fmc}}
+The timing \dword{fmc}, in endpoint mode, acted as a downstream/upstream timing link via a \dword{sfp} transceiver, and recovered the clock from the data-stream using a \dword{cdr} chip.
+Since this test a new protocol has been developed which does not require the \dword{cdr} chip (see section \ref{sec:new-protocol}).
+The existing timing endpoint firmware was ported over to the AFC, and the following operations were successfully tested
+\begin{itemize}
+    \item IPBus communication over Ethernet (routed via the crate controller) with the \dword{afc} \dword{fpga}.
+    \item Establishment of stable downlink between timing master and endpoint, i.e. successful transmission of commands and timestamp from master to endpoint.
+    \item Establishment of stable uplink between timing master and endpoint, i.e. successful transmission of commands from endpoint to master.
+\end{itemize}
+
+\subsection{Functionality tests}
+
+
+\subsubsection{Synchronisation across endpoints}
+All devices in the \dword{dts} should have the same timestamps.
+\begin{itemize}
+  \item ProtoDUNE-I included tracks which caused multiple \dword{hsi} events.
+    No unexpected behaviour was observed.
+\end{itemize}
+
+\section{Additional tests}
+
+\subsection{Broadcasting data}
+The \dword{dts} must be able to broadcast data through the \dword{sfp} connections.
+Commands are sent with fixed latency and required specification in firmware to have an effect.
+Arbitrary data packets may be sent to interact with an endpoint in other ways, i.e. to change the value in a register on an endpoint.
+
+\subsubsection{Commands}
+The timing system can broadcast and receive 255 different commands.
+\begin{itemize}
+  \item Master devices are observed to send commands and record the which commands and how many have been sent.
+  \item Endpoint devices are observed to record the corresponding commands and counts when a connected master device sends a command
+\end{itemize}
+
+\subsubsection{Data packets}
+Endpoints must be able to receive data packets, e.g. for changing the value in one of the registers.
+\begin{itemize}
+  \item Registers on endpoints can be changed by a command from the master.
+\end{itemize}
 
 \subsection{Modified timing protocol}
+\label{sec:new-protocol}
 The difficulty in sourcing \dword{cdr} (Clock and Data Recovery) chips (ADN2814 chip) required the development of a new protocol which is not dependent upon this chip.
 The new protocol is designed to have the same functionality as the previous protocol.
 \begin{itemize}
@@ -42,6 +95,7 @@ The new protocol is designed to have the same functionality as the previous prot
   \item Tests listed below can be assumed to have passed the modified protocol, unless specified.
 \end{itemize}
 
+% This overlaps with ProtoDUNE-I tests, but appears 10x better...
 \subsection{Clock jitter}
 \label{sec:jitter}
 The clock must be stable such that it will not drift over time and produce incorrect timestamps.
@@ -95,27 +149,21 @@ In the new protocol, anything which does not give perfect reception of data will
 %  \item \dword{of} is high when the device is given a good clock with a different frequency than expected by the device.
 %\end{itemize}
 
-\subsection{Clock distribution}
-Endpoint must be able to reconstruct a clock from the data they receive.
-\begin{itemize}
-  \item \dword{cdr} block inside timing firmware able to recover the clock from data.
-  The results of \ref{sec:jitter} demonstrates the clocks lock.
-\end{itemize}
+% % Covered by ProtoDUNE-I tests
+% \subsection{Clock distribution}
+% Endpoint must be able to reconstruct a clock from the data they receive.
+% \begin{itemize}
+%   \item \dword{cdr} block inside timing firmware able to recover the clock from data.
+%   The results of \ref{sec:jitter} demonstrates the clocks lock.
+% \end{itemize}
 
-\subsection{Controlling endpoint transmission}
-The transmission of data through the \dword{sfp} connected to the endpoint can be toggled on and off via a software command.
-\begin{itemize}
-  \item Power is received in the \dword{sfp} of the connected master when the endpoint transmission is toggled on, and no power is received when the endpoint transmission is toggled off.
-  \item This is yet to be tested with all available hardware designs.
-\end{itemize}
-
-\subsection{Synchronisation across endpoints}
-All devices in the \dword{dts} should have the same timestamps.
-\begin{itemize}
-  \item ProtoDUNE-I included tracks which caused multiple \dword{hsi} events.
-    No unexpected behaviour was observed.
-  \item Quantitative tests are expected to be carried out with the new protocol in ProtoDUNE-II.
-\end{itemize}
+% % Covered in AFC-crate FMC section?
+% \subsection{Controlling endpoint transmission}
+% The transmission of data through the \dword{sfp} connected to the endpoint can be toggled on and off via a software command.
+% \begin{itemize}
+%   \item Power is received in the \dword{sfp} of the connected master when the endpoint transmission is toggled on, and no power is received when the endpoint transmission is toggled off.
+%   \item This is yet to be tested with all available hardware designs.
+% \end{itemize}
 
 \subsection{Bi-directional communication}
 To be able to measure round trip times, and more, it is necessary to have a two-way connection between master and endpoint.
@@ -124,24 +172,117 @@ To be able to measure round trip times, and more, it is necessary to have a two-
   \item Additionally, endpoint registers can been read from the master using an appropriate command.
 \end{itemize}
 
-\subsection{Broadcasting commands}
-The timing system must be able to send sync commands from a master device to an endpoint.
-\begin{itemize}
-  \item The software interface to inject a commands at arbitrary times has been tested, and shown to work.
-\end{itemize}
-
-\subsection{Data packet transfer}
-Endpoints must be able to receive data packets, e.g. for changing the value in one of the registers.
-\begin{itemize}
-  \item Registers on endpoints can be changed by a command from the master.
-\end{itemize}
-
 \subsection{Redundancy}
 The \dword{dts} will have two GPS receivers and crates containing master devices.
 The timestamps between these systems will be compared and any disparity will be flagged and reported to the \dword{ccm} (Control, Configuration and Management).
 \begin{itemize}
   \item The GPS systems have not yet been fully developed.
 \end{itemize}
+
+
+
+\section{Regression testing}
+\label{sec:test-scripts}
+To ensure updates do not break previous functionality, testing scripts were developed to run with a specified configuration of hardware, firmware, and software.
+The scripts use data from the firmware interpreted by the software, so are most appropriate for spotting deviations from expected behaviour, rather than as conclusive tests in themselves.
+
+\subsection{Testing method}
+A configuration file is used to record the hardware, firmware, and software present in the test.
+The configuration files are saved and may be copied to ensure consistency between runs when only one aspect is changed (i.e. using a different hardware device with the same firmware and software).
+
+The scripts download and install the firmware as specified in the configuration file.
+The scripts run a set of commands using the timing software, with the commands used based on the firmware that has been installed.
+The outputs of the timing commands are saved in a log file.
+The log file is then parsed by a python script to determine whether the tests were successful or not.
+The final log file contains the configuration used in the test, the command outputs, and a summary of the success of the tests.
+
+The user may also create custom testing scripts to be run after the standard tests are completed.
+
+\subsection{Available tests}
+Different hardware, firmware, and software lead to different valid tests available.
+The known hardwares, firmwares, and softwares are listed below with an special considerations.
+
+Hardware:
+\begin{itemize}
+    \item PC053a/PC053d/PC053e - \dword{fmc}s: No considerations.
+    \item PC059 - board containing eight \dword{sfp} slots: Requires a \dword{mux} to be selected, and cannot read \dword{sfp} data.
+    \item \dword{tlu} - contains multiple hardware pulse inputs: Cannot read \dword{sfp} data.
+    \item \dword{fib} - board compatible with a \dword{utca} with eight \dword{sfp} slots to distribute downstream: Requires a \dword{mux} to be selected, and cannot read \dword{sfp} data.
+    \item \dword{mib} - board compatible with a \dword{utca} to receive an upstream signal: Cannot read \dword{sfp} data.
+\end{itemize}
+
+Firmware:
+\begin{itemize}
+    \item Master - allows generation and distribution of a clock: Available on \dword{fmc} and PC059.
+    \item Overlord - legacy name for master: Available on \dword{fmc} and \dword{tlu}.
+    \item Boreas - master design including \dword{hsi} block: Avaiable on \dword{fmc} and \dword{tlu}.
+    \item Ouroboros - master design also including internal endpoint: Available on \dword{fmc}, PC059, and \dword{fib}.
+    \item Endpoint - Receives a clock and timestamps: Avaiable on \dword{fmc}.
+    \item Chronos - Endpoint design including \dword{hsi} block: Available on \dword{fmc}.
+    \item \dword{crt} - Endpoint design including \dword{crt} block: Available on \dword{fmc}.
+\end{itemize}
+
+Software:
+\begin{itemize}
+    \item dtsbutler - New protocol developed for use without \dword{cdr} chip (see section \ref{sec:new-protocol}): Overlord and \dword{crt} firmware not avaiable, and limited hardware available.
+    \item pdtbutler - Old protocol requiring \dword{cdr} chip: Master firmware not available.
+\end{itemize}
+
+In addition, it is possible to use a loopback configuration, in which the master and endpoint are the same device, which requires an \dword{sfp} connection to itself.
+This is only available for the ouroboros firmware.
+
+\subsubsection{Testing sequence}
+\label{sec:flowchart}
+The tests used in the scripts and the conditions to run them are displayed in figures \ref{fig:flowchart-main} and \ref{fig:flowchart-modules} below.
+Figure \ref{fig:flowchart-main} shows the main sequence of tests, and figure \ref{fig:flowchart-modules} shows a few series of tests factorised out of the main sequence for brevity.
+
+
+% \begin{table}[hb]
+% \centering
+% \small
+% %\begin{tabular}{|p{3cm}|c|c|c|c|c|c|c|c|c|c|c|}
+% \begin{tabular}{|p{3.5cm}|@{\hskip2pt}c@{\hskip2pt}|@{\hskip2pt}c@{\hskip2pt}|@{\hskip2pt}c@{\hskip2pt}|@{\hskip2pt}c@{\hskip2pt}|@{\hskip2pt}c@{\hskip2pt}|@{\hskip2pt}c@{\hskip2pt}|@{\hskip2pt}c@{\hskip2pt}|@{\hskip2pt}c@{\hskip2pt}|@{\hskip2pt}c@{\hskip2pt}|@{\hskip2pt}c@{\hskip2pt}|@{\hskip2pt}c@{\hskip2pt}|}
+%   \hline
+%                             & New               & Old               &                   &                   &                   &                   &                   &                   &                   &                   &                   \\
+%   Test                      & protocol          & protocol          & Boreas            & Fanout            & Overlord          & Master            & TLU               & PC059             & FMC               & MIB               & FIB               \\
+%   \hline
+%   Reset setup validation    & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        \\
+%   \hline
+%   PLL frequency             & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        \\
+%   \hline
+%   SFP transmission          & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        \\
+%   \hline
+%   Timestamp broadcasting    & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        \\
+%   \hline
+%   HSI status                & \checkmark        & \checkmark        & \checkmark        & \textbf{$\times$} & \textbf{$\times$} & \textbf{$\times$} & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        \\
+%   \hline
+%   HSI buffer words          & \checkmark        & \checkmark        & \checkmark        & \textbf{$\times$} & \textbf{$\times$} & \textbf{$\times$} & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        \\
+%   \hline
+%   Applying endpoint delays  & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        & \checkmark        \\
+%   \hline
+% \end{tabular}
+% \medskip
+% \caption{Tests present in a testing suite, with indications of the conditions for the test to run. ``New protocol'' and ``Old protocol'' (columns 1 and 2) refer to the firmware built for use with/without a \dword{cdr} chip respectively.}
+% \label{tab:tests}
+% \end{table}
+
+\begin{figure}[hb!]
+\begin{center}
+\includegraphics[width=\linewidth]{figures/flowchart-fdr-main.png}
+\caption{Flowchart displaying the conditions for the main series of tests from a series of testing scripts.}
+\label{fig:flowchart-main}
+\end{center}
+\end{figure}
+\FloatBarrier
+
+\begin{figure}[ht!]
+\begin{center}
+\includegraphics[height=0.95\textheight]{figures/flowchart-fdr-modules.png}
+\caption{Flowchart displaying the conditions for specific test modules from a series of testing scripts.}
+\label{fig:flowchart-modules}
+\end{center}
+\end{figure}
+\FloatBarrier
 
 \printglossary
 \printbibliography

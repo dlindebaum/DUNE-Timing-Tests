@@ -73,6 +73,15 @@
 
 %%%%%%     START ADDING WORDS, IN ALPHABETICAL ORDER IF POSSIBLE!    %%%%%%%%
 
+%advanced meazzanine card
+\newduneabbrev{amc}{AMC}{advanced mezzanine card}{Holds digitizing electronics and lives in \gls{utca} crates}
+
+% AMC FMC carrier
+\newduneabbrev{afc}{AFC}{\gls{amc} \gls{fmc} Carrier}{Board slottable into a \gls{utca} crate which can mount an \gls{amc}}
+
+% Cosmic Ray Trigger
+\newduneabbrev{crt}{CRT}{Cosmic Ray Trigger}{Type of firmware for cosmic ray trigger which needs to record and timestamp received pulses}
+
 % Dune timing system
 \newduneabbrev{dts}{DTS}{DUNE Timing System}{The timing and synchronization system for DUNE. An umbrella term encompassing both the vertical drift and horizontal drift detector module timing systems}
 
@@ -82,14 +91,29 @@
 % CDR chip
 \newduneword{cdr}{CDR}{Clock and Data Recovery}
 
+%fib interface board
+\newduneabbrev{fib}{FIB}{Fibre Interface Board}{interface to the timing endpoints}
+
+%field programmable gate array
+\newduneabbrev{fpga}{FPGA}{Field Programmable Gate Array}{An integrated circuit technology that allows the hardware to be reconfigured to execute different algorithms after its manufacture and deployment}
+
+% FPGA Mezzanine card
+\newduneabbrev{fmc}{FMC}{FPGA Mezzanine Card} {An ANSI/VITA (VMEbus International Trade Association) 57.1 standard that defines I/O mezzanine modules with connection to an FPGA. Can be plugged into an \gls{amc}}
+
+% microTCA Interface Board
+\newduneabbrev{mib}{MIB}{\gls{utca} Interface Board}{Controller of a \gls{utca} crate}
+
+% Multiplexer
+\newduneabbrev{mux}{MUX}{Multiplexer channel}{Multiplexer controlling which \gls{sfp} is active on a board with multiple \gls{sfp}s.}
+
 % Top Detector Electronics
-\newduneabbrev{tde}{TDE}{Top Detector Electronics} {Detector hardware used in the upper detector of the vertical drift module.}
+\newduneabbrev{tde}{TDE}{Top Detector Electronics} {Detector hardware used in the upper detector of the vertical drift module}
 
 % Vertical Drift
-\newduneabbrev{vd}{VD}{Vertical Drift} {DUNE far detector module in which the drift direction is parallel with earth gravitational field.}
+\newduneabbrev{vd}{VD}{Vertical Drift} {DUNE far detector module in which the drift direction is parallel with earth gravitational field}
 
 % White Rabbit
-\newduneabbrev{wr}{WR}{White Rabbit}{An implementation of the IEEE-1588 standard. Used by the dual phase readout. It is used to forward the clock signal and time-of-day reference data from the DUNE timing system to the dual phase readout}
+\newduneabbrev{wr}{WR}{White Rabbit}{An implementation of the IEEE-1588 standard. It is used to forward the clock signal and time-of-day reference data from the DUNE timing system to the \gls{vd} readout}
 
 % HSI
 \newduneabbrev{hsi}{HSI}{Hardware Signals Interface} {System in DUNE which timestamps external electrical signals}
@@ -112,11 +136,12 @@
 % TDC
 \newduneabbrev{tdc}{TDC}{Time to Digital Converter} {A chip which assigns a timestamp to incoming pulses}
 
-% FPGA Mezzanine card
-\newduneabbrev{fmc}{FMC}{FPGA Mezzanine Card} {An ANSI/VITA (VMEbus International Trade Association) 57.1 standard that defines I/O mezzanine modules with connection to an FPGA.}
-
 % TLU
 \newduneword{tlu}{TLU}{Trigger Logic Unit}
+
+%Micro Telecommunications Computing Architecture
+\newduneabbrev{utca}{$\mu$TCA}{Micro Telecommunications Computing Architecture}{The computer architecture specification followed by the crates that house charge and light readout electronics for the \gls{dts}} %A computer architecture. Vertical card-edge connectors, Amphenol ICC }%,  \url{https://www.amphenol-icc.com/product-series/micro-tca-card-edge.html}}
+
 
 %%near detector
 %\newduneabbrev{nd}{ND}{near detector}{Refers to the detector(s) %or more  generally the experimental site
@@ -131,10 +156,6 @@
 %\newduneabbrev{sp}{SP}{Single-Phase}{Distinguishes one of the DUNE far detector technologies by the fact that it operates using argon in its liquid phase only
 %  %Distinguishes one of the four  \SI{10}{\kton} \glspl{detmodule} of the DUNE far detector by the  fact that it operates using argon in just its liquid phase}
 %  }
-%
-%%dual-phase
-%\newduneabbrev{dp}{DP}{Dual-Phase}{Distinguishes one of the DUNE far detector technologies by the fact that it operates using argon %Distinguishes one of the four \SI{10}{\kton} \glspl{detmodule} of the DUNE far detector by the fact that it operates using argon 
-% in both gas and liquid phases}
 %
 %%photon detection system
 %\newduneabbrev{pds}{PDS}{Photon Detection System}{The detector 
@@ -302,21 +323,11 @@
 %\newduneabbrev{atca}{ATCA}{Advanced Telecommunications Computing
 %  Architecture}{An advanced computer architecture specification developed for the telecommunications, military, and aerospace industries that incorporates the latest trends high-speed interconnect technologies, next-generation processors, and improved reliability, availability and serviceability} 
 %
-%%Micro Telecommunications Computing Architecture
-%\newduneabbrev{utca}{$\mu$TCA}{Micro Telecommunications Computing Architecture}{The computer architecture specification followed by the crates that house charge and light readout electronics in the dual-phase module} %A computer architecture. Vertical card-edge connectors, Amphenol ICC }%,  \url{https://www.amphenol-icc.com/product-series/micro-tca-card-edge.html}}
-%
 %%user datagram protocol
 %\newduneabbrev{udp}{UDP}{user datagram protocol}{A simple,
 %  connectionless Internet protocol that supports data integrity
 %  checksums, requires no handshaking, and does not guarantee packet delivery}
 %
-%%advanced meazzanine card
-%\newduneabbrev{amc}{AMC}{advanced mezzanine card}{Holds digitizing
-%  electronics and lives in \gls{utca} crates}
-%
-%% FPGA Mezzanine card
-%\newduneabbrev{fmc}{FMC}{FPGA Mezzanine Card} {An ANSI/VITA (VMEbus International Trade Association) 57.1 standard that defines I/O mezzanine modules with connection to an FPGA. Can be plugged into an \gls{amc}}
-%  
 %% Small form-factor pluggable transceiver
 %\newduneabbrev{sfp}{SFP}{Small Form-Factor Pluggable} {A hot-pluggable transceiver for carrying Gigabit/s serial signals. The transport medium is usually an optical fiber}
 %
@@ -324,11 +335,6 @@
 %\newduneabbrev{rf}{RF}{radio frequency}{Electromagnetic emissions
 %  that are within the (radio) frequency band of sensitivity of the detector
 %  electronics}
-%
-%%field programmable gate array
-%\newduneabbrev{fpga}{FPGA}{field programmable gate array}{An
-%integrated circuit technology that allows the hardware to be reconfigured to
-%execute different algorithms after its manufacture and deployment}
 %
 %%Front-End Link eXchange
 %\newduneabbrev{felix}{FELIX}{Front-End Link eXchange}{A
@@ -907,11 +913,6 @@
 %\newduneabbrev{gib}{GIB}{GPS Interface Board}{Interface to the GPS receiver} 
 %
 %\newduneabbrev{mch}{MCH}{MicroTCA Carrier Hub}{Controller of a \gls{utca} crate}
-%
-%\newduneabbrev{mib}{MIB}{\gls{utca} Interface Board}{Controller of a \gls{utca} crate}
-%
-%%fib interface board
-%\newduneabbrev{fib}{FIB}{Fibre Interface Board}{interface to the timing endpoints} 
 %
 %\newduneabbrev{eti}{ETI}{External Trigger Interface}{Units receiving external signals into the \dword{spdts}}
 %
