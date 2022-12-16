@@ -25,43 +25,64 @@
 This document lists and describes tests on the \dword{dts}, which is responsible for distributing timestamps throughout the DUNE experiment, including to the \dword{vd} \dword{tde}, which uses a different timestamp distribution system, \dword{wr}.
 The test stands currently being used for the majority of the testing are built with prototype hardware.
 
-The tests carried out during ProtoDUNE-I are listed first, followed by additional tests which have been performed after ProtoDUNE-I, covering additional aspects of the timing system which deserve testing.
+The successful running of ProtoDUNE-I confirmed the baseline functionality of the \dword{dts}.
+Tests carried out during ProtoDUNE-I are listed first, followed by additional tests which have been performed after ProtoDUNE-I, covering additional aspects of the timing system which deserve testing.
 
-\section{ProtoDUNE-I testing}
+\section{ProtoDUNE-I tests}
 \subsection{Integration tests}
-As part of the \dword{dts} prototyping process, a Schroff 11890-170 \dword{utca} crate, and an \dword{afc} board [2] were purchased.
-The AFC is being considered to be the \dword{amc} which hosts the \dword{fib}.
+As part of the \dword{dts} prototyping process, a Schroff 11890-170 \dword{utca} crate, and an \dword{afc} board \cite{amc_ohwr} was purchased.
+The \dword{afc} is being considered as the \dword{amc} which hosts the \dword{fib}.
 The two units were operated together, and the existing timing \dword{fmc} was used to start assessing \dword{afc}’s suitability as a fan-out \dword{amc}.
 
-\subsubsection{\dword{utca} crate-\dword{afc}}
+\subsubsection{$\mu$TCA crate-AFC}
 The following operations were successfully tested with the \dword{utca} crate and the \dword{afc}.
 \begin{itemize}
     \item Remote programming of \dword{afc} \dword{fpga}.
-    \item Configuration of \dword{afc} clock routing circuity using Intelligent Platform Management Interface (IPMI) commands.
-    \item Configuration of \dword{afc} on-board oscillator using IPMI commands.
+    \item Configuration of \dword{afc} clock routing circuity using \dword{ipmi} commands.
+    \item Configuration of \dword{afc} on-board oscillator using \dword{ipmi} commands.
 \end{itemize}
 
-\subsubsection{AFC-Timing \dword{fmc}}
+\subsubsection{AFC-Timing FMC}
 The timing \dword{fmc}, in endpoint mode, acted as a downstream/upstream timing link via a \dword{sfp} transceiver, and recovered the clock from the data-stream using a \dword{cdr} chip.
-Since this test a new protocol has been developed which does not require the \dword{cdr} chip (see section \ref{sec:new-protocol}).
-The existing timing endpoint firmware was ported over to the AFC, and the following operations were successfully tested
+The existing timing endpoint firmware was ported over to the AFC, and the following operations were successfully tested:
 \begin{itemize}
     \item IPBus communication over Ethernet (routed via the crate controller) with the \dword{afc} \dword{fpga}.
     \item Establishment of stable downlink between timing master and endpoint, i.e. successful transmission of commands and timestamp from master to endpoint.
     \item Establishment of stable uplink between timing master and endpoint, i.e. successful transmission of commands from endpoint to master.
 \end{itemize}
+Since ProtoDUNE-I, the setup has been expanded to use a \dword{mib} distributing timing information via the back-plane of a \dword{utca} to a \dword{fib} on an \dword{afc} board connected to a downstream \dword{fmc}:
+\begin{itemize}
+    \item The \dword{mib} can lock to an upstream timing clock.
+    \item The \dword{fib} can lock to a \dword{mib} in the same crate through the back-plane without an \dword{sfp} connection.
+    \item An \dword{fmc} connected to the \dword{fib} using an \dword{fmc} can lock to the clock, and successfully receives commands issued by the \dword{mib}.
+\end{itemize}
 
 \subsection{Functionality tests}
-
-
+ProtoDUNE-I used multiple endpoints, so was suitable for testing performance across endpoints simultaneously.
 \subsubsection{Synchronisation across endpoints}
 All devices in the \dword{dts} should have the same timestamps.
 \begin{itemize}
   \item ProtoDUNE-I included tracks which caused multiple \dword{hsi} events.
     No unexpected behaviour was observed.
+  \item The offset in clock edges between two endpoints was found to have a standard deviation of 0.140 ns.
 \end{itemize}
 
 \section{Additional tests}
+
+\subsection{Modified timing protocol}
+\label{sec:new-protocol}
+The difficulty in sourcing \dword{cdr} (Clock and Data Recovery) chips (the ADN2814 chip) required the development of a new protocol which is not dependent upon this chip.
+The new protocol is designed to have the same functionality as the previous protocol.
+\begin{itemize}
+  \item Basic functionality tests have passed by demonstrating the same results as the previous protocol.
+  These tests include:
+  \begin{itemize}
+  	\item Clocks are produced and received.
+  	\item Endpoints reach required states.
+  	\item \dword{hsi} information is correctly stored.
+  \end{itemize}
+\end{itemize}
+Tests listed below can be assumed to have passed the modified protocol, unless specified.
 
 \subsection{Broadcasting data}
 The \dword{dts} must be able to broadcast data through the \dword{sfp} connections.
@@ -72,7 +93,8 @@ Arbitrary data packets may be sent to interact with an endpoint in other ways, i
 The timing system can broadcast and receive 255 different commands.
 \begin{itemize}
   \item Master devices are observed to send commands and record the which commands and how many have been sent.
-  \item Endpoint devices are observed to record the corresponding commands and counts when a connected master device sends a command
+  \item Endpoint devices are observed to record the corresponding commands and counts when a connected master device sends a command.
+  \item Pulses can been seen from the decoder of a connected endpoint when an appropriate command is sent from the master device.
 \end{itemize}
 
 \subsubsection{Data packets}
@@ -81,21 +103,6 @@ Endpoints must be able to receive data packets, e.g. for changing the value in o
   \item Registers on endpoints can be changed by a command from the master.
 \end{itemize}
 
-\subsection{Modified timing protocol}
-\label{sec:new-protocol}
-The difficulty in sourcing \dword{cdr} (Clock and Data Recovery) chips (ADN2814 chip) required the development of a new protocol which is not dependent upon this chip.
-The new protocol is designed to have the same functionality as the previous protocol.
-\begin{itemize}
-  \item Basic functionality tests have passed by demonstrating the same results with basic commands as the previous protocol. Basic tests include:
-  \begin{itemize}
-  	\item Clocks are produced and received.
-  	\item Endpoints reach required states.
-  	\item \dword{hsi} information is correctly stored.
-  \end{itemize}
-  \item Tests listed below can be assumed to have passed the modified protocol, unless specified.
-\end{itemize}
-
-% This overlaps with ProtoDUNE-I tests, but appears 10x better...
 \subsection{Clock jitter}
 \label{sec:jitter}
 The clock must be stable such that it will not drift over time and produce incorrect timestamps.
@@ -112,11 +119,11 @@ The following properties were tested:
   \begin{itemize}
     \item The difference in rising edges between \dword{dts} and \dword{wr} clocks was measured to be 509ps with a standard deviation of 41ps \cite{wr}.
   \end{itemize}
-  \item The \dword{wr} timestamp generation is stable when driven by one pulse per second from \dword{dts}.
+  \item The \dword{wr} timestamp generation is stable when the \dword{wr} master is driven by a 10MHz clock from the \dword{dts}.
   \begin{itemize}
-    \item The period of a 1PPS as sampled by a \dword{wr} \dword{tdc} had a standard deviation of 0.1ns \cite{wr}.
+    \item The period of a one pulse-per-second (1PPS) signal as sampled by a \dword{wr} \dword{tdc} and synchronised by a \dword{dts} driven \dword{wr} grandmaster had a standard deviation of 0.1ns \cite{wr}.
   \end{itemize}
-  \item The \dword{wr} timestamp remains locked to the \dword{dts} timestamp.
+  \item The \dword{wr} timestamp remains locked to the \dword{dts} timestamp when sampled from the same electrical pulse.
   \begin{itemize}
     \item The difference in \dword{wr} timestamps and \dword{dts} timestamps is uniform between 0ns and 16ns. This comes from \dword{dts} being quantised in 16ns intervals and \dword{wr} having a finer granularity \cite{wr}.
     \item Tests with the new protocol have not yet been performed.
@@ -149,14 +156,6 @@ In the new protocol, anything which does not give perfect reception of data will
 %  \item \dword{of} is high when the device is given a good clock with a different frequency than expected by the device.
 %\end{itemize}
 
-% % Covered by ProtoDUNE-I tests
-% \subsection{Clock distribution}
-% Endpoint must be able to reconstruct a clock from the data they receive.
-% \begin{itemize}
-%   \item \dword{cdr} block inside timing firmware able to recover the clock from data.
-%   The results of \ref{sec:jitter} demonstrates the clocks lock.
-% \end{itemize}
-
 % % Covered in AFC-crate FMC section?
 % \subsection{Controlling endpoint transmission}
 % The transmission of data through the \dword{sfp} connected to the endpoint can be toggled on and off via a software command.
@@ -178,7 +177,6 @@ The timestamps between these systems will be compared and any disparity will be 
 \begin{itemize}
   \item The GPS systems have not yet been fully developed.
 \end{itemize}
-
 
 
 \section{Regression testing}
@@ -214,7 +212,7 @@ Hardware:
 Firmware:
 \begin{itemize}
     \item Master - allows generation and distribution of a clock: Available on \dword{fmc} and PC059.
-    \item Overlord - legacy name for master: Available on \dword{fmc} and \dword{tlu}.
+    \item Overlord - master design which can transmits received triggers to endpoints: Available on \dword{fmc} and \dword{tlu}.
     \item Boreas - master design including \dword{hsi} block: Avaiable on \dword{fmc} and \dword{tlu}.
     \item Ouroboros - master design also including internal endpoint: Available on \dword{fmc}, PC059, and \dword{fib}.
     \item Endpoint - Receives a clock and timestamps: Avaiable on \dword{fmc}.
