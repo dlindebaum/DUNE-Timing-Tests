@@ -50,7 +50,7 @@ The existing timing endpoint firmware was ported over to the AFC, and the follow
     \item Establishment of stable downlink between timing master and endpoint, i.e. successful transmission of commands and timestamp from master to endpoint.
     \item Establishment of stable uplink between timing master and endpoint, i.e. successful transmission of commands from endpoint to master.
 \end{itemize}
-Since ProtoDUNE-I, the setup has been expanded to use a \dword{mib} distributing timing information via the back-plane of a \dword{utca} to a \dword{fib} on an \dword{afc} board connected to a downstream \dword{fmc}:
+Since ProtoDUNE-I, the setup has been expanded to use a \dword{mib} distributing timing information via the back-plane of a \dword{utca} crate to a \dword{fib} on an \dword{afc} board connected to a downstream \dword{fmc}:
 \begin{itemize}
     \item The \dword{mib} can lock to an upstream timing clock.
     \item The \dword{fib} can lock to a \dword{mib} in the same crate through the back-plane without an \dword{sfp} connection.
