@@ -106,9 +106,11 @@ Endpoints must be able to receive data packets, e.g. for changing the value in o
 
 \subsection{Clock jitter}
 \label{sec:jitter}
-The clock must be stable such that it will not drift over time and produce incorrect timestamps.
+The clock rising edges should be delivered to every detector component simultaneously. The interval between rising edges should be identical between every pair of clock edges. Any deviation from this we define as ``jitter''. Within a detector module the clock edges must be aligned to better than 5ns.  Between the detector module and the FNAL accelerator complex the time-stamps must be aligned to better than 1us.
+
 \begin{itemize}
   \item Difference in time of clock edges between a master and locked endpoint were measured and found to have a standard deviation of 12ps \cite{jitter}.
+  \item Initial tests indicate that we can measure (and hence compensate for) the round trip delay from master to endpoint to better than 200ps. System level tests are needed to confirm this.
 \end{itemize}
 
 \subsection{Integration with VD TDE}
